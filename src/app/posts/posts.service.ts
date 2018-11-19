@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subject } from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 
 import { Post } from './post.model';
 import {map} from 'rxjs/operators';
@@ -43,6 +43,22 @@ export class PostsService {
         const id = responseData.postId;
         post.id = id;
         this.posts.push(post);
+        this.postsUpdated.next([...this.posts]);
+      });
+  }
+
+  getPost(id: string): Observable<any> {
+    return this.http.get<any>('http://localhost:3000/api/posts/' + id);
+  }
+
+  updatePost(id: string, title: string, content: string) {
+    const post: Post = { id, title, content };
+    this.http.put('http://localhost:3000/api/posts/' + id, post)
+      .subscribe(response => {
+        const updatedPosts = [...this.posts];
+        const oldPostIndex = updatedPosts.findIndex(p => p.id === post.id);
+        updatedPosts[oldPostIndex] = post;
+        this.posts = updatedPosts;
         this.postsUpdated.next([...this.posts]);
       });
   }
